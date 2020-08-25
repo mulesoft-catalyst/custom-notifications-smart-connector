@@ -15,11 +15,11 @@
            http://www.mulesoft.org/schema/mule/module-ustom-notification http://www.mulesoft.org/schema/mule/module-ustom-notification/current/mule-module-customnotification.xsd
            http://www.mulesoft.org/schema/mule/cloudhub http://www.mulesoft.org/schema/mule/cloudhub/current/mule-cloudhub.xsd">
 
-	<property name="username" type="string" displayName="Anypoint Platform Username" doc:description="Anypoint Platform Username credential."/>
-  	<property name="password" type="string" password="true" displayName="Anypoint Platform Password" doc:description="Anypoint Platform Password credential"/>
-  	
-  	<cloudhub:config name="CloudHub_Config" doc:name="CloudHub Config" doc:id="5e00e90c-e990-467d-a203-9ef695866ea3" >
-		<cloudhub:connection username="#[vars.username]" password="#[vars.password]" environment="eb473ffd-2134-4ecf-b7bc-63a5d0856743" />
+  <property name="username" type="string" displayName="Anypoint Platform Username" doc:description="Anypoint Platform Username credential."/>
+	<property name="password" type="string" password="true" displayName="Anypoint Platform Password" doc:description="Anypoint Platform Password credential"/>
+	<property name="environment" type="string" displayName="Anypoint Platform Environment" doc:description="Anypoint Platform Environment Id"/>
+  <cloudhub:config name="CloudHub_Config" doc:name="CloudHub Config" doc:id="5e00e90c-e990-467d-a203-9ef695866ea3" >
+		<cloudhub:connection username="#[vars.username]" password="#[vars.password]" environment="#[vars.environment]" />
 	</cloudhub:config>
   	
     <operation name="send-notification" doc:description="Send a custom notification">
