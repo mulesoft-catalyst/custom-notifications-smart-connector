@@ -1,5 +1,5 @@
 # Table of Contents
-- [Custom Notification Smart Connector](#custom-notification-smart-connector)
+- [Custom Notifications Smart Connector](#custom-notifications-smart-connector)
     + [XML SDK documentation](#xml-sdk-documentation)
     + [Usage](#usage)
       - [Connector Installation (Publishing into Exchange)](#connector-installation--publishing-into-exchange-)
@@ -16,7 +16,7 @@
         * [1.0.0-SNAPSHOT:](#100-snapshot-)
     + [Collaborations](#collaborations)
 
-# Custom Notification Smart Connector
+# Custom Notifications Smart Connector
 This is a smart connector built using XML SDK (Mule 4) and it's only applicable for Cloudhub based deployment models. The goal of this custom connector is to simplify the way the process can send notifications. Although using the Cloudhub connector directly doesn't represent too much complexity, having this connector speeds up the practice and allows a better reuse, mainly avoiding that each application that must send a notification has to know the html template used, parse it and configure the notification.
 
 The notifications sent by this custom connector override the notification model used out of the box by the Platfom, replacing it with a simple form. All this performed in an Async fashion, to reduce the overhead introduced by the notification strategy.
@@ -107,7 +107,7 @@ It's recommended to configure to different alerts, one Warning/Critical for erro
 | Priority       | Contains  |
 | ------------- |:-------------:|
 |Error |ERROR|
-|Info|INFO|
+|Info or Any|INFO|
 
 The value on the **Contains** column will be matched with the values set by the connector for the ***Type*** field of the HTML template. This value will be inferred based on the values sent.
 
@@ -134,7 +134,7 @@ There are online tools that make this procedure very easy.
 * This connector was made using the MuleSoft XML SDK, so a set of limitations applies on the connector. Take this into account for future enhancement you may want to add. Reference: https://docs.mulesoft.com/mule-sdk/1.1/xml-sdk#xml-sdk-limitations
 
 ### Appendix I - Anypoint Exchange documentation
-When this connector is deployed to Exchange, this generates an asset. Like any asset, Exchange creates a landing page that will serve as a reference for anyone who consumes this asset. It's a good practice to provide substantial documentation regarding its use. This documentation can follow a format similar to the steps explained here, in this README page. please, before doing so make the pertinent changes, especially the onees required to the use of images.
+When this connector is deployed to Exchange, this generates an asset. Then, Exchange automaticaly creates a landing page that will serve as a reference for anyone who wants to consume it. It's a good practice to provide substantial documentation regarding its use. This documentation can follow a format similar to the steps explained here, in this README page. please, before doing so make the pertinent changes, especially the onees required to the use of images.
 
 ### Release Notes
    - ##### 1.0.0-SNAPSHOT: 
