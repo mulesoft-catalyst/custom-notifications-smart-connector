@@ -1,65 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module name="CustomNotification Smart Connector"
-		category="SELECT"
-        prefix="module-customnotification"
-        doc:description="This module relies in runtime provided components"
-        xmlns="http://www.mulesoft.org/schema/mule/module"
-        xmlns:mule="http://www.mulesoft.org/schema/mule/core"
-        xmlns:cloudhub="http://www.mulesoft.org/schema/mule/cloudhub"
-        xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-        xmlns:tns="http://www.mulesoft.org/schema/mule/module-customnotification"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="
-           http://www.mulesoft.org/schema/mule/module http://www.mulesoft.org/schema/mule/module/current/mule-module.xsd
-           http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-           http://www.mulesoft.org/schema/mule/module-ustom-notification http://www.mulesoft.org/schema/mule/module-ustom-notification/current/mule-module-customnotification.xsd
-           http://www.mulesoft.org/schema/mule/cloudhub http://www.mulesoft.org/schema/mule/cloudhub/current/mule-cloudhub.xsd">
-
-  <property name="username" type="string" displayName="Anypoint Platform Username" doc:description="Anypoint Platform Username credential."/>
-	<property name="password" type="string" password="true" displayName="Anypoint Platform Password" doc:description="Anypoint Platform Password credential"/>
-	<property name="environment" type="string" displayName="Anypoint Platform Environment" doc:description="Anypoint Platform Environment Id"/>
-  <cloudhub:config name="CloudHub_Config" doc:name="CloudHub Config" doc:id="5e00e90c-e990-467d-a203-9ef695866ea3" >
-		<cloudhub:connection username="#[vars.username]" password="#[vars.password]" environment="#[vars.environment]" />
-	</cloudhub:config>
-  	
-    <operation name="send-notification" doc:description="Send a custom notification">
-         <parameters>
-            <parameter name="reportTitle" type="string" displayName="Report Title" summary="Report title to show in the html template. If not specified, a default title will be used" use="OPTIONAL"/>
-            <parameter name="applicationName" type="string" displayName="Application Name" summary="started, completed, in-progress, error, send-start, send-complete, send-error" use="REQUIRED"/>
-            <parameter name="domainName" type="string" displayName="Domain Name" summary="A domain name to use on Cloudhub connector. If not specified, a default domain name will be used" use="OPTIONAL"/>
-            <parameter name="muleEnv" type="string" displayName="Mule Environment" summary="The environment where application is running. If not specified, the connector willl try to default to mule.env property" use="OPTIONAL"/>
-            <parameter name="customerName" type="string" displayName="Customer Name" use="OPTIONAL"/>
-            <parameter name="error" type="ObjectType" displayName="Error Object" summary="Send the error object. Mandatory if 'Message' was not set." use="OPTIONAL" tab="Notification Details"/>
-            <parameter name="message" type="ObjectType" displayName="Message" summary="Notification Message. Can be an object. Mandatory if 'Error Object' was not set." use="OPTIONAL" tab="Notification Details"/>
-        </parameters>
-        <body>
-        		<mule:logger level="DEBUG" doc:name="Logger" message="#[output application/json --- { error: (vars.error default ''), message: (vars.message default '')}]" />
-            <mule:choice>
-    		        <mule:when expression="#[(isEmpty(vars.error) and isEmpty(vars.message))]">
-    		          <mule:raise-error type="MODULE-CUSTOMNOTIFICATION:EMPTY_MESSAGE" description="Empty messages were sent. At least one of 'Error Object' or 'Message' must be sent. Check the 'Notification Details' tab."/>
-    		        </mule:when>
-    		        <mule:when expression="#[(!isEmpty(vars.error) and !isEmpty(vars.message))]">
-    		          <mule:raise-error type="MODULE-CUSTOMNOTIFICATION:DUAL_MESSAGE" description="'Error Object' and 'Message' parameters contain values. Only one is allowed. Check the 'Notification Details' tab."/>
-    		        </mule:when>
-    		    </mule:choice>
-            <mule:async doc:name="Async" doc:id="e5cad132-9933-48b2-8f93-f81db5f49d6b" >
-            		<mule:parse-template doc:name="parseEmailTemplate" doc:id="7996bae2-29f7-4010-a8fb-f21d7b3aad40" target="email">
-            			<mule:content >&lt;html emailTemplate&gt; &lt;head&gt; &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=iso-8859-1&quot;&gt; &lt;link href='https://fonts.googleapis.com/css?family=Sofia'&gt; &lt;style type=&quot;text/css&quot; style=&quot;display:none;&quot;&gt; P {margin-top:0;margin-bottom:0;} &lt;/style&gt; &lt;/head&gt; &lt;body dir=&quot;ltr&quot;&gt; &lt;div&gt; &lt;div class=&quot;WordSection1&quot;&gt; &lt;div&gt; &lt;table class=&quot;MsoNormalTable&quot; style=&quot;width: 768px; border-collapse: collapse;&quot;&gt; &lt;tbody&gt; &lt;tr style=&quot;height: 62.0pt; width: 45.0pt;&quot;&gt; &lt;td style=&quot;width: 30px; border-top: none; border-right: none; border-left: none; border-image: initial; border-bottom: 1pt solid white; background: #00A0DF; padding: 0in 5.75pt; height: 62pt;&quot;&gt; &lt;p class=&quot;MsoNormal&quot; style=&quot;margin-right: 0in; margin-bottom: 6.0pt; text-indent: -.5in; width: max-content;&quot;&gt;&lt;span style=&quot;font-size: 20.0pt; font-family: Sofia; color: white;&quot;&gt;&lt;strong&gt;#[vars.customerName default ""]&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt; &lt;/td&gt; &lt;td style=&quot;width: 724px; border-top: none; border-right: none; border-left: none; border-image: initial; border-bottom: 1pt solid white; background: #00A0DF; padding: 0in 5.75pt; height: 62pt;&quot;&gt; &lt;p class=&quot;MsoNormal&quot; style=&quot;margin-right: 0in; margin-bottom: 6.0pt; text-indent: -.5in; width: max-content;&quot;&gt;&lt;span style=&quot;font-size: 18.0pt; font-family: Sofia; color: white;&quot;&gt;&lt;strong&gt;#[vars.reportTitle default "Notification report"]&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt; &lt;/td&gt; &lt;/tr&gt; &lt;tr style=&quot;height: 22.55pt; width: 45.0pt;&quot;&gt; &lt;td style=&quot;width: 30px; border-top: none; border-right: none; border-left: none; border-image: initial; border-bottom: 1pt solid white; background: #00A0DF; padding: 0in 5.75pt; height: 22.55pt;&quot;&gt; &lt;p class=&quot;MsoNormal&quot; style=&quot;margin-right: 0in; margin-bottom: 6.0pt; text-indent: -.5in; width: max-content;&quot;&gt;&lt;strong&gt; &lt;span style=&quot;font-size: 10.0pt; font-family: 'Arial',sans-serif; color: white;&quot;&gt;Application Name&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt; &lt;/td&gt; &lt;td style=&quot;width: 724px; border-top: none; border-left: none; border-bottom: 1pt solid windowtext; border-right: 1pt solid windowtext; padding: 0in 5.75pt; height: 22.55pt;&quot;&gt; &lt;p class=&quot;MsoNoSpacing&quot; style=&quot;margin-right: 0in; margin-bottom: 6.0pt; &quot;&gt;&lt;strong&gt; &lt;span style=&quot;font-size: 10.0pt; font-family: 'Arial',sans-serif;&quot;&gt;#[vars.applicationName]&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt; &lt;/td&gt; &lt;/tr&gt; &lt;tr style=&quot;height: 22.55pt; width: 45.0pt;&quot;&gt; &lt;td style=&quot;width: 30px; border-top: none; border-right: none; border-left: none; border-image: initial; border-bottom: 1pt solid white; background: #00A0DF; padding: 0in 5.75pt; height: 22.55pt;&quot;&gt; &lt;p class=&quot;MsoNormal&quot; style=&quot;margin-right: 0in; margin-bottom: 6.0pt; text-indent: -.5in; width: max-content;&quot;&gt;&lt;strong&gt; &lt;span style=&quot;font-size: 10.0pt; font-family: 'Arial',sans-serif; color: white;&quot;&gt;Domain Name&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt; &lt;/td&gt; &lt;td style=&quot;width: 724px; border-top: none; border-left: none; border-bottom: 1pt solid windowtext; border-right: 1pt solid windowtext; padding: 0in 5.75pt; height: 22.55pt;&quot;&gt; &lt;p class=&quot;MsoNoSpacing&quot; style=&quot;margin-right: 0in; margin-bottom: 6.0pt; &quot;&gt;&lt;strong&gt; &lt;span style=&quot;font-size: 10.0pt; font-family: 'Arial',sans-serif;&quot;&gt;#[vars.domainName default "default-domain"]&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt; &lt;/td&gt; &lt;/tr&gt; &lt;tr style=&quot;height: 22.55pt; width: 45.0pt;&quot;&gt; &lt;td style=&quot;width: 30px; border-top: none; border-right: none; border-left: none; border-image: initial; border-bottom: 1pt solid white; background: #00A0DF; padding: 0in 5.75pt; height: 22.55pt;&quot;&gt; &lt;p class=&quot;MsoNormal&quot; style=&quot;margin-right: 0in; margin-bottom: 6.0pt; text-indent: -.5in; width: max-content; &quot;&gt;&lt;strong&gt; &lt;span style=&quot;font-size: 10.0pt; font-family: 'Arial',sans-serif; color: white;&quot;&gt;Environment&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt; &lt;/td&gt; &lt;td style=&quot;width: 724px; border-top: none; border-left: none; border-bottom: 1pt solid windowtext; border-right: 1pt solid windowtext; padding: 0in 5.75pt; height: 22.55pt;&quot;&gt; &lt;p class=&quot;MsoNoSpacing&quot; style=&quot;margin-right: 0in; margin-bottom: 6.0pt; &quot;&gt;&lt;strong&gt; &lt;span style=&quot;font-size: 10.0pt; font-family: 'Arial',sans-serif;&quot;&gt;#[vars.muleEnv default Mule::p('mule.env')]&lt;br /&gt;&lt;/span&gt; &lt;/strong&gt;&lt;/p&gt; &lt;/td&gt; &lt;/tr&gt; &lt;tr style=&quot;height: 22.55pt; width: 45.0pt;&quot;&gt; &lt;td style=&quot;width: 30px; border-top: none; border-right: none; border-left: none; border-image: initial; border-bottom: 1pt solid white; background: #00A0DF; padding: 0in 5.75pt; height: 22.55pt;&quot;&gt; &lt;p class=&quot;MsoNormal&quot; style=&quot;margin-right: 0in; margin-bottom: 6.0pt; text-indent: -.5in; width: max-content;&quot;&gt;&lt;strong&gt; &lt;span style=&quot;font-size: 10.0pt; font-family: 'Arial',sans-serif; color: white;&quot;&gt;Description&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt; &lt;/td&gt; &lt;td style=&quot;width: 724px; border-top: none; border-left: none; border-bottom: 1pt solid windowtext; border-right: 1pt solid windowtext; padding: 0in 5.75pt; height: 22.55pt;&quot;&gt; &lt;p class=&quot;MsoNoSpacing&quot; style=&quot;margin-right: 0in; margin-bottom: 6.0pt; &quot;&gt; &lt;span style=&quot;font-size: 10.0pt; font-family: 'Arial',sans-serif;&quot;&gt;#[%dw 2.0
+<module xmlns="http://www.mulesoft.org/schema/mule/module" 
+	xmlns:cloudhub="http://www.mulesoft.org/schema/mule/cloudhub" 
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" 
+	xmlns:mule="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:tns="http://www.mulesoft.org/schema/mule/module-customnotification" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	name="CustomNotification Smart Connector" 
+	category="SELECT" 
+	prefix="module-customnotification" 
+	doc:description="This module relies in runtime provided components" 
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/module http://www.mulesoft.org/schema/mule/module/current/mule-module.xsd            
+			    http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd            
+			    http://www.mulesoft.org/schema/mule/module-ustom-notification 
+			    http://www.mulesoft.org/schema/mule/module-ustom-notification/current/mule-module-customnotification.xsd            
+			    http://www.mulesoft.org/schema/mule/cloudhub 
+			    http://www.mulesoft.org/schema/mule/cloudhub/current/mule-cloudhub.xsd">
+   <property name="username" type="string" displayName="Anypoint Platform Username" doc:description="Anypoint Platform Username credential." />
+   <property name="password" type="string" password="true" displayName="Anypoint Platform Password" doc:description="Anypoint Platform Password credential" />
+   <property name="environment" type="string" displayName="Anypoint Platform Environment" doc:description="Anypoint Platform Environment Id" />
+   <cloudhub:config name="CloudHub_Config" doc:name="CloudHub Config" doc:id="5e00e90c-e990-467d-a203-9ef695866ea3">
+      <cloudhub:connection username="#[vars.username]" password="#[vars.password]" environment="#[vars.environment]" />
+   </cloudhub:config>
+   <operation name="send-notification" doc:description="Send a custom notification">
+      <parameters>
+         <parameter name="reportTitle" type="string" displayName="Report Title" summary="Report title to show in the html template. If not specified, a default title will be used" use="OPTIONAL" />
+         <parameter name="applicationName" type="string" displayName="Application Name" summary="started, completed, in-progress, error, send-start, send-complete, send-error" use="REQUIRED" />
+         <parameter name="domainName" type="string" displayName="Domain Name" summary="A domain name to use on Cloudhub connector. If not specified, a default domain name will be used" use="OPTIONAL" />
+         <parameter name="muleEnv" type="string" displayName="Mule Environment" summary="The environment where application is running. If not specified, the connector willl try to default to mule.env property" use="OPTIONAL" />
+         <parameter name="customerName" type="string" displayName="Customer Name" use="OPTIONAL" />
+         <parameter name="error" type="ObjectType" displayName="Error Object" summary="Send the error object. Mandatory if 'Message' was not set." use="OPTIONAL" tab="Notification Details" />
+         <parameter name="message" type="ObjectType" displayName="Message" summary="Notification Message. Can be an object. Mandatory if 'Error Object' was not set." use="OPTIONAL" tab="Notification Details" />
+      </parameters>
+      <body>
+         <mule:logger level="DEBUG" doc:name="Logger" message="#[output application/json --- { error: (vars.error default ''), message: (vars.message default '')}]" />
+         <mule:choice>
+            <mule:when expression="#[(isEmpty(vars.error) and isEmpty(vars.message))]">
+               <mule:raise-error type="MODULE-CUSTOMNOTIFICATION:EMPTY_MESSAGE" description="Empty messages were sent. At least one of 'Error Object' or 'Message' must be sent. Check the 'Notification Details' tab." />
+            </mule:when>
+            <mule:when expression="#[(!isEmpty(vars.error) and !isEmpty(vars.message))]">
+               <mule:raise-error type="MODULE-CUSTOMNOTIFICATION:DUAL_MESSAGE" description="'Error Object' and 'Message' parameters contain values. Only one is allowed. Check the 'Notification Details' tab." />
+            </mule:when>
+         </mule:choice>
+         <mule:async doc:name="Async" doc:id="e5cad132-9933-48b2-8f93-f81db5f49d6b">
+            <mule:parse-template doc:name="parseEmailTemplate" doc:id="7996bae2-29f7-4010-a8fb-f21d7b3aad40" target="email">
+               <mule:content>&lt;html emailTemplate&gt; &lt;head&gt; &lt;meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"&gt; &lt;link href='https://fonts.googleapis.com/css?family=Sofia'&gt; &lt;style type="text/css" style="display:none;"&gt; P {margin-top:0;margin-bottom:0;} &lt;/style&gt; &lt;/head&gt; &lt;body dir="ltr"&gt; &lt;div&gt; &lt;div class="WordSection1"&gt; &lt;div&gt; &lt;table class="MsoNormalTable" style="width: 768px; border-collapse: collapse;"&gt; &lt;tbody&gt; &lt;tr style="height: 62.0pt; width: 45.0pt;"&gt; &lt;td style="width: 30px; border-top: none; border-right: none; border-left: none; border-image: initial; border-bottom: 1pt solid white; background: #00A0DF; padding: 0in 5.75pt; height: 62pt;"&gt; &lt;p class="MsoNormal" style="margin-right: 0in; margin-bottom: 6.0pt; text-indent: -.5in; width: max-content;"&gt;&lt;span style="font-size: 20.0pt; font-family: Sofia; color: white;"&gt;&lt;strong&gt;#[vars.customerName default ""]&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt; &lt;/td&gt; &lt;td style="width: 724px; border-top: none; border-right: none; border-left: none; border-image: initial; border-bottom: 1pt solid white; background: #00A0DF; padding: 0in 5.75pt; height: 62pt;"&gt; &lt;p class="MsoNormal" style="margin-right: 0in; margin-bottom: 6.0pt; text-indent: -.5in; width: max-content;"&gt;&lt;span style="font-size: 18.0pt; font-family: Sofia; color: white;"&gt;&lt;strong&gt;#[vars.reportTitle default "Notification report"]&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt; &lt;/td&gt; &lt;/tr&gt; &lt;tr style="height: 22.55pt; width: 45.0pt;"&gt; &lt;td style="width: 30px; border-top: none; border-right: none; border-left: none; border-image: initial; border-bottom: 1pt solid white; background: #00A0DF; padding: 0in 5.75pt; height: 22.55pt;"&gt; &lt;p class="MsoNormal" style="margin-right: 0in; margin-bottom: 6.0pt; text-indent: -.5in; width: max-content;"&gt;&lt;strong&gt; &lt;span style="font-size: 10.0pt; font-family: 'Arial',sans-serif; color: white;"&gt;Application Name&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt; &lt;/td&gt; &lt;td style="width: 724px; border-top: none; border-left: none; border-bottom: 1pt solid windowtext; border-right: 1pt solid windowtext; padding: 0in 5.75pt; height: 22.55pt;"&gt; &lt;p class="MsoNoSpacing" style="margin-right: 0in; margin-bottom: 6.0pt; "&gt;&lt;strong&gt; &lt;span style="font-size: 10.0pt; font-family: 'Arial',sans-serif;"&gt;#[vars.applicationName]&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt; &lt;/td&gt; &lt;/tr&gt; &lt;tr style="height: 22.55pt; width: 45.0pt;"&gt; &lt;td style="width: 30px; border-top: none; border-right: none; border-left: none; border-image: initial; border-bottom: 1pt solid white; background: #00A0DF; padding: 0in 5.75pt; height: 22.55pt;"&gt; &lt;p class="MsoNormal" style="margin-right: 0in; margin-bottom: 6.0pt; text-indent: -.5in; width: max-content;"&gt;&lt;strong&gt; &lt;span style="font-size: 10.0pt; font-family: 'Arial',sans-serif; color: white;"&gt;Domain Name&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt; &lt;/td&gt; &lt;td style="width: 724px; border-top: none; border-left: none; border-bottom: 1pt solid windowtext; border-right: 1pt solid windowtext; padding: 0in 5.75pt; height: 22.55pt;"&gt; &lt;p class="MsoNoSpacing" style="margin-right: 0in; margin-bottom: 6.0pt; "&gt;&lt;strong&gt; &lt;span style="font-size: 10.0pt; font-family: 'Arial',sans-serif;"&gt;#[vars.domainName default "default-domain"]&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt; &lt;/td&gt; &lt;/tr&gt; &lt;tr style="height: 22.55pt; width: 45.0pt;"&gt; &lt;td style="width: 30px; border-top: none; border-right: none; border-left: none; border-image: initial; border-bottom: 1pt solid white; background: #00A0DF; padding: 0in 5.75pt; height: 22.55pt;"&gt; &lt;p class="MsoNormal" style="margin-right: 0in; margin-bottom: 6.0pt; text-indent: -.5in; width: max-content; "&gt;&lt;strong&gt; &lt;span style="font-size: 10.0pt; font-family: 'Arial',sans-serif; color: white;"&gt;Environment&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt; &lt;/td&gt; &lt;td style="width: 724px; border-top: none; border-left: none; border-bottom: 1pt solid windowtext; border-right: 1pt solid windowtext; padding: 0in 5.75pt; height: 22.55pt;"&gt; &lt;p class="MsoNoSpacing" style="margin-right: 0in; margin-bottom: 6.0pt; "&gt;&lt;strong&gt; &lt;span style="font-size: 10.0pt; font-family: 'Arial',sans-serif;"&gt;#[vars.muleEnv default Mule::p('mule.env')]&lt;br /&gt;&lt;/span&gt; &lt;/strong&gt;&lt;/p&gt; &lt;/td&gt; &lt;/tr&gt; &lt;tr style="height: 22.55pt; width: 45.0pt;"&gt; &lt;td style="width: 30px; border-top: none; border-right: none; border-left: none; border-image: initial; border-bottom: 1pt solid white; background: #00A0DF; padding: 0in 5.75pt; height: 22.55pt;"&gt; &lt;p class="MsoNormal" style="margin-right: 0in; margin-bottom: 6.0pt; text-indent: -.5in; width: max-content;"&gt;&lt;strong&gt; &lt;span style="font-size: 10.0pt; font-family: 'Arial',sans-serif; color: white;"&gt;Description&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt; &lt;/td&gt; &lt;td style="width: 724px; border-top: none; border-left: none; border-bottom: 1pt solid windowtext; border-right: 1pt solid windowtext; padding: 0in 5.75pt; height: 22.55pt;"&gt; &lt;p class="MsoNoSpacing" style="margin-right: 0in; margin-bottom: 6.0pt; "&gt; &lt;span style="font-size: 10.0pt; font-family: 'Arial',sans-serif;"&gt;#[%dw 2.0
 output application/json
 ---
-if(!isEmpty(vars.error)) vars.error.errorType default {} ++ {description: vars.error.description} default {} ++ {stacktrace: vars.error.cause.cause.stackTrace} default {} else vars.message]&lt;br /&gt; &lt;/span&gt;&lt;/p&gt; &lt;/td&gt; &lt;/tr&gt; &lt;tr style=&quot;height: 22.55pt; width: 45.0pt;&quot;&gt; &lt;td style=&quot;width: 30px; border-top: none; border-right: none; border-left: none; border-image: initial; border-bottom: 1pt solid white; background: #00A0DF; padding: 0in 5.75pt; height: 22.55pt;&quot;&gt; &lt;p class=&quot;MsoNormal&quot; style=&quot;margin-right: 0in; margin-bottom: 6.0pt; text-indent: -.5in; width: max-content;&quot;&gt;&lt;strong&gt; &lt;span style=&quot;font-size: 10.0pt; font-family: 'Arial',sans-serif; color: white;&quot;&gt;Type&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt; &lt;/td&gt; &lt;td style=&quot;width: 724px; border-top: none; border-left: none; border-bottom: 1pt solid windowtext; border-right: 1pt solid windowtext; padding: 0in 5.75pt; height: 22.55pt;&quot;&gt; &lt;p class=&quot;MsoNoSpacing&quot; style=&quot;margin-right: 0in; margin-bottom: 6.0pt; &quot;&gt; &lt;span style=&quot;font-size: 10.0pt; font-family: 'Arial',sans-serif;&quot;&gt;#[%dw 2.0
+if(!isEmpty(vars.error)) vars.error.errorType default {} ++ {description: vars.error.description} default {} ++ {stacktrace: vars.error.cause.cause.stackTrace} default {} else vars.message]&lt;br /&gt; &lt;/span&gt;&lt;/p&gt; &lt;/td&gt; &lt;/tr&gt; &lt;tr style="height: 22.55pt; width: 45.0pt;"&gt; &lt;td style="width: 30px; border-top: none; border-right: none; border-left: none; border-image: initial; border-bottom: 1pt solid white; background: #00A0DF; padding: 0in 5.75pt; height: 22.55pt;"&gt; &lt;p class="MsoNormal" style="margin-right: 0in; margin-bottom: 6.0pt; text-indent: -.5in; width: max-content;"&gt;&lt;strong&gt; &lt;span style="font-size: 10.0pt; font-family: 'Arial',sans-serif; color: white;"&gt;Type&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt; &lt;/td&gt; &lt;td style="width: 724px; border-top: none; border-left: none; border-bottom: 1pt solid windowtext; border-right: 1pt solid windowtext; padding: 0in 5.75pt; height: 22.55pt;"&gt; &lt;p class="MsoNoSpacing" style="margin-right: 0in; margin-bottom: 6.0pt; "&gt; &lt;span style="font-size: 10.0pt; font-family: 'Arial',sans-serif;"&gt;#[%dw 2.0
 output application/json
 ---
 if(!isEmpty(vars.error)) 'ERROR' else 'INFO']&lt;br /&gt; &lt;/span&gt;&lt;/p&gt; &lt;/td&gt; &lt;/tr&gt;&lt;/tbody&gt; &lt;/table&gt; &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;/body&gt; &lt;/html&gt;</mule:content>
-            		</mule:parse-template>
-				<cloudhub:create-notification domain="#[vars.domainName default 'default-domain']" doc:name="Create Notification" doc:id="29a7bc66-21ae-41b5-b2d3-331c098acb9e" config-ref="CloudHub_Config" priority="#[if(!isEmpty(vars.error)) 'ERROR' else 'INFO']">
-					<cloudhub:message ><![CDATA[#[vars.email.payload]]]></cloudhub:message>
-				</cloudhub:create-notification>
-            </mule:async>
-        </body>
-        <output type="string" doc:description="Payload's output"/>
-        <errors>
-	      <error type="EXPRESSION"/>
-	    </errors>
-    </operation>
- </module>
+            </mule:parse-template>
+            <cloudhub:create-notification domain="#[vars.domainName default 'default-domain']" doc:name="Create Notification" doc:id="29a7bc66-21ae-41b5-b2d3-331c098acb9e" config-ref="CloudHub_Config" priority="#[if(!isEmpty(vars.error)) 'ERROR' else 'INFO']">
+               <cloudhub:message><![CDATA[#[vars.email.payload]]]></cloudhub:message>
+            </cloudhub:create-notification>
+         </mule:async>
+      </body>
+      <output type="string" doc:description="Payload's output" />
+      <errors>
+         <error type="EXPRESSION" />
+      </errors>
+   </operation>
+</module>
