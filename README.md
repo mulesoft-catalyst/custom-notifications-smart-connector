@@ -3,11 +3,11 @@
     + [XML SDK documentation](#xml-sdk-documentation)
     + [Usage](#usage)
       - [Connector Installation (Publishing into Exchange)](#connector-installation--publishing-into-exchange-)
+      - [Anypoint Runtime Manager configuration (Alerts)](#anypoint-runtime-manager-configuration--alerts-)      
       - [Connector configuration (Mule Application)](#connector-configuration--mule-application-)
         * [Examples](#examples)
           + [Sending INFO notifications](#sending-info-notifications)
           + [Sending ERROR notifications](#sending-error-notifications)
-      - [Anypoint Runtime Manager configuration (Alerts)](#anypoint-runtime-manager-configuration--alerts-)
     + [Exceptions](#exceptions)
     + [Change the HTML template](#change-the-html-template)
     + [Considerations and limitations](#considerations-and-limitations)
@@ -17,7 +17,7 @@
     + [Collaborations](#collaborations)
 
 # Custom Notifications Smart Connector
-This is a smart connector built using XML SDK (Mule 4) and it's only applicable for Cloudhub based deployment models. The goal of this custom connector is to simplify the way the process can send notifications. Although using the Cloudhub connector directly doesn't represent too much complexity, having this connector speeds up the practice and allows a better reuse, mainly avoiding that each application that must send a notification has to know the html template used, parse it and configure the notification.
+This is a smart connector built using XML SDK (Mule 4) and it's only applicable for Cloudhub based deployment models. The goal of this custom connector is to simplify the way an application can send notifications. This custom connector proposes a strategy to send personalised notifications using the platform's proposed out of the box components (Cloudhub Connector and Runtime Manager Alerts). Although the Cloudhub Connector itself doesn't represent too much complexity, this custom connector speeds up the practice and achieves better reusability, mainly by removing the need of each application that must send a notification has to know the HTML template used, parse it and configure the notification on top.
 
 The notifications sent by this custom connector override the notification model used out of the box by the Platfom, replacing it with a simple form. All this performed in an Async fashion, to reduce the overhead introduced by the notification strategy.
   
@@ -31,7 +31,7 @@ The usage of this connector involves different stages, listed below:
 * Mule application usage
 
 #### Connector Installation (Publishing into Exchange)
-Execute the following steps on the folder where the project was cloned. This is only required if you're publishing the connector into Exchange.
+Execute the following steps on the folder where the project was cloned.
 1. Make sure to replace the <groupId> tag on the pom.xml with your organization ID.
 2. Execute the following in a terminal/cmd/shell:
 ```mvn deploy -DskipTests```
@@ -51,23 +51,39 @@ Uploaded to : https://maven.anypoint.mulesoft.com/api/v2/organizations/8033ff23-
 [INFO] Finished at: 2020-08-25T14:13:28-03:00
 [INFO] ------------------------------------------------------------------------
 ```
+    
+#### Anypoint Runtime Manager configuration (Alerts)
+In order to trigger the notifications (email) we need to configure alerts in the Runtime Manager. 
+Reference: https://docs.mulesoft.com/runtime-manager/alerts-on-runtime-manager
+It's recommended to configure to different alerts, one Warning/Critical for errors and one Info for info notifications. To distinguish between both is important to set the "Condition" of the alert to "Custom application notification" and set the proper Priority as follows:
+| Priority       | Contains  |
+| ------------- |:-------------:|
+|Error |ERROR|
+|Info or Any|INFO|
+
+The value on the **Contains** column will be matched with the values set by the connector for the ***Type*** field of the HTML template. This value will be inferred based on the values sent.
+
+Here is an example of both alerts configured:
+![image info](./images/info-alert.png)
+![image info](./images/error-alert.png)
+
 
 #### Connector configuration (Mule Application)
 The use of the connector during the development phase is very straigthforward:
 1. Get the connector from Exchange. Reference: https://docs.mulesoft.com/studio/7.6/add-modules-in-studio-to
 2. Use it as indicated on the examples
-##### Examples
+##### Connector Configuration
 Next you'll find examples to send INFO or ERROR notifications. This explanation assumes that Anypoint Platform username and password were set creating a new configuration and that configuration was associated with the connector, as follows:
 
 ![image info](./images/platform-credentials.png)
 
 ###### Sending INFO notifications
-This option is useful when we want to notify about certain business events that aren't errors but important for decisioning i.e. execution results or metrics of a batch/poller process. Please take into account that including notifications steps adds some overhead to the final process (less than 2%) and some of this messages can be obtained performing a proper analysis of the logs files. It's advisable not to abuse of these types of notifications.
+This option is useful when we want to notify about certain business events that are not errors, but are important for decisioning (i.e. execution results, metrics of a batch/poller process, etc). Please take into account that including notifications steps adds some overhead to the final process (less than 2%) and some of this messages can be obtained performing a proper analysis of the logs files. It's advisable not to abuse of these types of notifications.
 
 The following sample flow will be used to demonstrate this scenario
 ![image info](./images/example-info-app.png)
 
-This is just a simple HTTL listener listening on default port. When an incoming request is received, then the connector is executed, sending a notification via email.
+This is just a simple HTTP listener listening on default port. When an incoming request is received, then the connector is executed, sending a notification via email.
 The following connector's properties are mandatory to send INFO notifications:
 
 | Property       | description  |
@@ -86,7 +102,7 @@ This option is useful when we want to notify about errors that happened during t
 The following sample flow will be used to demonstrate this scenario
 ![image info](./images/example-error-app.png)
 
-This is just a simple HTTL listener listening on default port. When an incoming request is received, then an HTTP request is perform to an endpoint that will reply with a timeout error. When the exception is catched, the connector is executed, sending a notification via email.
+This is just a simple HTTP listener listening on default port. When an incoming request is received, then an HTTP request is perform to an endpoint that will reply with a timeout error. When the exception is catched, the connector is executed, sending a notification via email.
 
 The following connector's properties are mandatory to send ERROR notifications:
 
@@ -99,22 +115,6 @@ The following connector's properties are mandatory to send ERROR notifications:
 
 As a result, the following email notification is triggered:
 ![image info](./images/error-email.png)
-
-#### Anypoint Runtime Manager configuration (Alerts)
-In order to trigger the notifications (email) we need to configure alerts in the Runtime Manager. 
-Reference: https://docs.mulesoft.com/runtime-manager/alerts-on-runtime-manager
-It's recommended to configure to different alerts, one Warning/Critical for errors and one Info for info notifications. To distinguish between both is important to set the "Condition" of the alert to "Custom application notification" and set the proper Priority as follows:
-| Priority       | Contains  |
-| ------------- |:-------------:|
-|Error |ERROR|
-|Info or Any|INFO|
-
-The value on the **Contains** column will be matched with the values set by the connector for the ***Type*** field of the HTML template. This value will be inferred based on the values sent.
-
-Here is an example of both alerts configured:
-![image info](./images/info-alert.png)
-![image info](./images/error-alert.png)
-
 
 ### Exceptions
 * ***MODULE-CUSTOMNOTIFICATION:EMPTY_MESSAGE***. This error is thrown when none, the Error and Message properties is sent. Both are OPTIONALS by nature on its definition, but one of these should be present.
@@ -129,7 +129,7 @@ There are online tools that make this procedure very easy.
 * The retention limitation of Runtime Manager for Notifications, explained in https://docs.mulesoft.com/runtime-manager/notifications-on-runtime-manager#notification-retention
 * The rate limit of Runtime Manager for Alerts, explained in https://docs.mulesoft.com/runtime-manager/alerts-on-runtime-manager#rate-limits-on-alerts
 * The size of the HTML template used. Make sure to not exceed the 10MB for the HTML page generated after parsing the template. The lighter the better.
-* This connector only works with non-federated users nor connected apps. 
+* This connector only works with non-federated users or connected apps. 
 * This isn't an official connector provided by MuleSoft. This means that if there is any issue in an integration that is using this connector, the support is out of scope of the MuleSoft Support team. If you open a ticket, this team will probably request a simplified version of the application (removing all the custom components that make it up)
 * This connector was made using the MuleSoft XML SDK, so a set of limitations applies on the connector. Take this into account for future enhancement you may want to add. Reference: https://docs.mulesoft.com/mule-sdk/1.1/xml-sdk#xml-sdk-limitations
 
@@ -145,4 +145,4 @@ When this connector is deployed to Exchange, this generates an asset. Then, Exch
         | Munit         | Add MUnit to connector|
 
 ### Collaborations
-Wants to collaborate? awesome! we're using a simplified gitflow workflow. Clone your repo locally, create a feature branch using the naming convention ```feature/name-of-the-feature``` and, once its ready, push your changes and open a pull request.
+Want to collaborate? awesome! we're using a simplified gitflow workflow. Clone your repo locally, create a feature branch using the naming convention ```feature/name-of-the-feature``` and, once its ready, push your changes and open a pull request.
