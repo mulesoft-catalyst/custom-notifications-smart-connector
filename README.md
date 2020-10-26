@@ -17,7 +17,7 @@
     + [Collaborations](#collaborations)
 
 # Custom Notifications Smart Connector
-This is a smart connector built using XML SDK (Mule 4) and it's only applicable for Cloudhub based deployment models. The goal of this custom connector is to simplify the way the process can send notifications. Although using the Cloudhub connector directly doesn't represent too much complexity, having this connector speeds up the practice and allows a better reuse, mainly avoiding that each application that must send a notification has to know the html template used, parse it and configure the notification.
+This is a smart connector built using XML SDK (Mule 4) and it's only applicable for Cloudhub based deployment models. The goal of this custom connector is to simplify the way an application can send notifications. This custom connector proposes a strategy to send personalised notifications using the platform's proposed out of the box components (Cloudhub Connector and Runtime Manager Alerts). Although the Cloudhub Connector itself doesn't represent too much complexity, this custom connector speeds up the practice and achieves better reusability, mainly by removing the need of each application that must send a notification has to know the HTML template used, parse it and configure the notification on top.
 
 The notifications sent by this custom connector override the notification model used out of the box by the Platfom, replacing it with a simple form. All this performed in an Async fashion, to reduce the overhead introduced by the notification strategy.
   
@@ -31,7 +31,7 @@ The usage of this connector involves different stages, listed below:
 * Mule application usage
 
 #### Connector Installation (Publishing into Exchange)
-Execute the following steps on the folder where the project was cloned. This is only required if you're publishing the connector into Exchange.
+Execute the following steps on the folder where the project was cloned.
 1. Make sure to replace the <groupId> tag on the pom.xml with your organization ID.
 2. Execute the following in a terminal/cmd/shell:
 ```mvn deploy -DskipTests```
